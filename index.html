@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Тестовое задание</title>
+
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/posts.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <header id="header">
+            <div class="page-header">
+                <h1>Тестовое задание</h1>
+            </div>
+            <h2>Задача:</h2>
+            <ol>
+                <li>Используя коллекцию <code>json/posts.json</code> заполнить базовыми значениями <code>localStorage</code> пользователя, вывести записи в <code>#posts</code>, взяв за основу разметку <code>#posts article</code>.</li>
+                <li>Возможность удаления записи из <code>localStorage</code>.</li>
+                <li>Форма добавления записи, валидация данных.</li>
+            </ol>
+            <p class="alert alert-info">Ограничений по использованию библиотек, кроссбраузерности &mdash; нет.</p>
+        </header>
+
+        <section>
+
+            <div id="posts" class="well">
+
+                <article>
+                    <header>
+                        <h3>%заголовок%</h3>
+                    </header>
+                    <section>
+                        <p>%текст%</p>
+                    </section>
+                    <footer>
+                        <div class="tags">
+                            <button class="btn btn-xs btn-default">%тег%</button> <button class="btn btn-xs btn-default">%еще тег%</button>
+                        </div>
+                    </footer>
+                    <div class="controls">
+                        <button onclick="deleteData(index)" class="btn btn-danger btn-mini">удалить</button>
+                    </div>
+                </article>
+
+            </div> <!-- /#posts -->
+            
+            <form onsubmit="return addData()" id="post-add" class="col-lg-4">
+                <div class="form-group">
+                    <input id="title" type="text" class="form-control" name="title" placeholder="заголовок" required>
+                </div>
+                <div class="form-group">
+                    <input id="body" type="text" class="form-control" name="body" placeholder="запись" required>
+                </div>
+                <div class="form-group">
+                    <input id="tags" type="text" class="form-control" name="tags" placeholder="тег, еще тег" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Добавить</button>
+            </form> <!-- /#post-add -->
+
+        </section>
+
+    </div>
+<script type="text/javascript">
+
+    if(null===localStorage.getItem("items")) {
+        localStorage.setItem("items", "[]");
+    }
+    var items = [];
+
+    var tags_template = '<button class="btn btn-xs btn-default">%tag%</button>';
+
+    var article_template = '<article>\
+                    <header>\
+                        <h3>%Title%</h3>\
+                    </header>\
+                    <section>\
+                        <p>%Text%</p>\
+                    </section>\
+                    <footer>\
+                        <div class="tags">%tags%</div>\
+                    </footer>\
+                    <div class="controls">\
+                        <button onclick="deleteData(%PostIndex%)" class="btn btn-danger btn-mini">удалить</button>\
+                    </div>\
+                </article>';
+
+   
+    
+
+    function addData () {
+        var entry = {
+            "title":document.getElementById("title").value,
+            "body":document.getElementById("body").value,
+            "tags":document.getElementById("tags").value.split(",")
+        }
+        items.push(entry);
+        save();
+        render();
+        return false;
+    }
+
+    function save() {
+        localStorage.setItem("items", JSON.stringify(items))
+    }
+   
+    function render(){
+        var posts_string = "";
+        for (var i = 0;i<items.length;i++) {
+
+            var tags_string = "";
+
+            for( var j = 0;j<items[i].tags.length;j++) {
+                tags_string += tags_template.replace("%tag%",items[i].tags[j]);
+            }
+
+            posts_string += article_template.replace("%Title%", items[i].title).replace("%tags%", tags_string).replace("%Text%", items[i].body).replace("%PostIndex%", i);
+
+        }
+        document.getElementById("posts").innerHTML=posts_string;
+    }
+
+    function deleteData (index) {
+        items.splice(index, 1);
+        save();
+        render();
+    }
+
+    function createPosts(data){
+    var posts = JSON.parse(data);
+        for(var i=0; i<posts.length;i++){
+    var post = posts[i];
+        if(items.indexOf(post) === -1){
+       items.push(post)
+    }
+    }
+    save();
+    render();
+    }
+
+    function loadJSON() {   
+
+    var xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+    xobj.open('GET', 'json/posts.json', true); 
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            createPosts(xobj.responseText);
+          }
+    };
+    xobj.send(null);  
+    }
+
+    loadJSON() 
+
+    items = items.concat(JSON.parse(localStorage.getItem("items")));
+    render();
+
+</script>
+</body>
+</html>
