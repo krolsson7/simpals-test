@@ -68,7 +68,7 @@
     if(null===localStorage.getItem("items")) {
         localStorage.setItem("items", "[]");
     }
-    var items = [];
+    var items = JSON.parse(localStorage.getItem("items"));
 
     var tags_template = '<button class="btn btn-xs btn-default">%tag%</button>';
 
@@ -88,6 +88,22 @@
                 </article>';
 
    
+    function createPosts(data){
+        var posts = JSON.parse(data);
+        for(var i=0; i<posts.length;i++){
+            var post = posts[i];
+            var post_exists = items.filter(function(item){
+                return post.id == item.id;
+            }).length > 0;
+            console.log(post_exists);
+            if(!post_exists){
+                items.push(post);
+            }
+        }
+        save();
+        render();
+    }
+    
     
 
     function addData () {
@@ -128,35 +144,19 @@
         render();
     }
 
-    function createPosts(data){
-    var posts = JSON.parse(data);
-        for(var i=0; i<posts.length;i++){
-    var post = posts[i];
-        if(items.indexOf(post) === -1){
-       items.push(post)
-    }
-    }
-    save();
-    render();
-    }
-
     function loadJSON() {   
 
-    var xobj = new XMLHttpRequest();
+        var xobj = new XMLHttpRequest();
         xobj.overrideMimeType("application/json");
-    xobj.open('GET', 'json/posts.json', true); 
-    xobj.onreadystatechange = function () {
+        xobj.open('GET', 'json/posts.json', true); 
+        xobj.onreadystatechange = function () {
           if (xobj.readyState == 4 && xobj.status == "200") {
             createPosts(xobj.responseText);
           }
-    };
-    xobj.send(null);  
+        };
+        xobj.send(null);  
     }
-
-    loadJSON() 
-
-    items = items.concat(JSON.parse(localStorage.getItem("items")));
-    render();
+    loadJSON();
 
 </script>
 </body>
